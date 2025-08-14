@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="bs">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tally Counter</title>
+<style>
+  body {
+    margin: 0;
+    background-color: #0f172a;
+    color: white;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    height: 100vh;
+    font-family: sans-serif;
+    user-select: none;
+  }
+  #counter {
+    position: absolute;
+    top: 30%;
+    font-size: 5rem;
+    text-align: center;
+    width: 100%;
+  }
+  #zone {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    left: 0;
+  }
+  #resetBtn {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    background: rgba(255,255,255,0.1);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 25px;
+    padding: 12px 0;
+    font-size: 1.2rem;
+    cursor: pointer;
+    text-align: center;
+  }
+  #resetBtn.hold {
+    background: rgba(255,0,0,0.2);
+  }
+</style>
+</head>
+<body>
+<div id="counter">0</div>
+<div id="zone"></div>
+<div id="resetBtn">Reset</div>
+<script>
+let count = 0;
+const counter = document.getElementById('counter');
+const zone = document.getElementById('zone');
+const resetBtn = document.getElementById('resetBtn');
+
+function increment() {
+  count++;
+  counter.textContent = count;
+}
+
+function resetCounter() {
+  count = 0;
+  counter.textContent = count;
+}
+
+let touchActive = false;
+const TAP_COOLDOWN = 400;
+let lastTapTime = 0;
+
+function handleTap(e) {
+  const now = Date.now();
+  if (now - lastTapTime < TAP_COOLDOWN) return;
+  lastTapTime = now;
+  increment();
+}
+
+if ('ontouchstart' in window) {
+  zone.addEventListener('touchstart', function (e) {
+    if (touchActive) return;
+    touchActive = true;
+    if (e.touches.length === 1) {
+      handleTap(e);
+    }
+  }, { passive: true });
+
+  zone.addEventListener('touchend', function () {
+    touchActive = false;
+  });
+} else {
+  zone.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    handleTap(e);
+  });
+}
+
+// Long press reset button (0.9s)
+let resetTimeout;
+resetBtn.addEventListener('pointerdown', () => {
+  resetBtn.classList.add('hold');
+  resetTimeout = setTimeout(() => {
+    resetCounter();
+    if (navigator.vibrate) navigator.vibrate(50);
+  }, 900);
+});
+
+resetBtn.addEventListener('pointerup', () => {
+  clearTimeout(resetTimeout);
+  resetBtn.classList.remove('hold');
+});
+resetBtn.addEventListener('pointerleave', () => {
+  clearTimeout(resetTimeout);
+  resetBtn.classList.remove('hold');
+});
+</script>
+</body>
+</html>
